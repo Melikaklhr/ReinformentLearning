@@ -1,0 +1,53 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import random
+np.random.seed(0)
+
+n_bandit=2000
+NumberOfArm=10
+play=1000
+q_star=np.random.uniform(0,1,(n_bandit,NumberOfArm)) 
+true_optimal_arms=np.argmax(q_star,1) 
+
+epsilon=[0,0.01,0.1,0.5] 
+col=['k','r','g','b']
+#fig=plt.figure()
+fig1=plt.figure().add_subplot(111)
+fig2=plt.figure().add_subplot(111)
+
+for eps in range(len(epsilon)) :
+	print ('Ceurrnt epsilon : ',epsilon[eps])
+
+	Q=np.zeros((n_bandit,NumberOfArm)) 
+	N=np.ones((n_bandit,NumberOfArm)) 
+	Qi=np.random.uniform(q_star,1) 
+
+	R_eps=[]
+	R_eps.append(0)
+	R_eps.append(np.mean(Qi))	
+	R_eps_optimal=[]
+
+	for pull in range(2,play+1) :  
+		Reward_pull=[] 
+		optimal_arm_pull=0 
+		for i in range(n_bandit) : 	
+
+			if random.random()<epsilon[eps] : 
+				j=np.random.randint(NumberOfArm)											
+			else : 
+				j=np.argmax(Q[i])
+
+			if j==true_optimal_arms[i] : 
+				optimal_arm_pull=optimal_arm_pull+1
+
+			temp_R=np.random.uniform(q_star[i][j],1)
+			Reward_pull.append(temp_R)
+			N[i][j]=N[i][j]+1
+			Q[i][j]=Q[i][j]+(temp_R-Q[i][j])/N[i][j]
+		
+		avg_Reward_pull=np.mean(Reward_pull)		
+		R_eps.append(avg_Reward_pull)
+		R_eps_optimal.append(float(optimal_arm_pull)*100/2000)
+	fig1.plot(range(0,play+1),R_eps,col[eps])
+	fig2.plot(range(2,play+1),R_eps_optimal,col[eps])
+
